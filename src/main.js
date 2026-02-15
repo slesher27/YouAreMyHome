@@ -13632,23 +13632,24 @@ enableOverworldObjectsProxy();
 
   // Connect to co-op server
 if (!state.net?.ws || state.net.ws.readyState !== 1) {
-  const isLocal =
-    location.hostname === "localhost" ||
-    location.hostname === "127.0.0.1" ||
-    location.hostname === "0.0.0.0";
+  // Pick WS server URL
+const params = new URLSearchParams(location.search);
+const wsOverride = params.get("ws"); // e.g. wss://yourserver.com
 
-  // If you're running the game from a LAN IP (192.168.x.x etc),
-  // you almost certainly want the WS server on THAT SAME host.
-  const WS_URL = isLocal
+const isLocal =
+  location.hostname === "localhost" ||
+  location.hostname === "127.0.0.1" ||
+  location.hostname === "0.0.0.0";
+
+const WS_URL = wsOverride
+  ? wsOverride
+  : isLocal
     ? `ws://${location.hostname}:8081`
-    : (location.hostname.endsWith("onrender.com")
-        ? `wss://${location.host}`          // deployed: same host
-        : `ws://${location.hostname}:8081`  // LAN/self-hosted: same host, port 8081
-      );
+    : "wss://yam-server.onrender.com";
 
-  console.log("[NET] WS_URL =", WS_URL, "hostname =", location.hostname);
+console.log("[NET] WS_URL =", WS_URL);
+connectOnline(WS_URL);
 
-  connectOnline(WS_URL);
 }
 
   // camera start
