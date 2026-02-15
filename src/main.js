@@ -227,6 +227,7 @@ screenFade: null,
 
   actionLog: [],
   logScroll: 0,
+  logExpanded: false,
 
   // Optional story cutscene (first-play; rewatchable via checkbox)
   wantCutscene: false,
@@ -3911,25 +3912,46 @@ for (const s of state.cutscene.stars) {
 drawGlowOrb(orbs.a.x, orbs.a.y, 7, 1);
 drawGlowOrb(orbs.b.x, orbs.b.y, 6, 0.95);
 
-  // ---- Panel on top
-  const boxW = Math.min(640, window.innerWidth - 80);
-  const boxH = 300;
-  const px = cx - boxW / 2;
-  const py = cy - boxH / 2;
+  // Story sizing
+const margin = 24;
+const boxW = Math.min(640, window.innerWidth - margin * 2);
+const boxH = Math.min(360, window.innerHeight * 0.55);
 
-  drawRect(px, py, boxW, boxH, "rgba(20,20,20,0.95)");
-  ctx.strokeStyle = "rgba(255,255,255,0.25)";
-  ctx.strokeRect(px, py, boxW, boxH);
+const px = cx - boxW / 2;
+const py = cy - boxH / 2;
 
-  const textY = py + 95;
-  drawText(slide.title, cx, py + 48, 32, "center", "#fff", TITLE_FONT);
-  drawWrappedText(slide.text, cx, textY, boxW - 80, 20, 14, "center", "#fff", BASE_FONT);
+// Panel
+drawRect(px, py, boxW, boxH, "rgba(20,20,20,0.95)");
+ctx.strokeStyle = "rgba(255,255,255,0.25)";
+ctx.strokeRect(px, py, boxW, boxH);
+
+// Dynamic spacing
+const titleY = py + Math.max(36, boxH * 0.14);
+const textY  = titleY + Math.max(36, boxH * 0.12);
+
+const titleSize = window.innerWidth < 600 ? 24 : 32;
+const bodySize  = window.innerWidth < 600 ? 13 : 14;
+
+drawText(slide.title, cx, titleY, titleSize, "center", "#fff", TITLE_FONT);
+
+drawWrappedText(
+  slide.text,
+  cx,
+  textY,
+  boxW - 60,
+  20,
+  bodySize,
+  "center",
+  "#fff",
+  BASE_FONT
+);
+
 
   drawText(
     `Scene ${state.cutscene.index + 1} / ${CUTSCENE_SLIDES.length}`,
     cx, py + boxH - 70, 12, "center", "rgba(255,255,255,0.55)", BASE_FONT
   );
-  drawText("Click to continue", cx, py + boxH - 38, 14, "center", "rgba(255,255,255,0.75)", BASE_FONT);
+  drawText("Tap to continue", cx, by + boxH - 38, 14, "center", "rgba(255,255,255,0.75)", BASE_FONT);
 
   state._cutsceneUI = { x: px, y: py, w: boxW, h: boxH };
 }
@@ -3948,26 +3970,43 @@ function drawTutorial() {
 
 const TITLE_Y_OFF = 40; // move title group down (tweak this number)
 
-  const boxW = Math.min(640, window.innerWidth - 80);
-  const boxH = 300;
-  const bx = cx - boxW / 2;
-  const by = cy - boxH / 2;
+  // Tutorial & Story Box sizing
+const margin = 24;
+const boxW = Math.min(640, window.innerWidth - margin * 2);
+const boxH = Math.min(360, window.innerHeight * 0.55);
 
-  drawRect(bx, by, boxW, boxH, "rgba(20,20,20,0.95)");
-  ctx.strokeStyle = "rgba(255,255,255,0.25)";
-  ctx.strokeRect(bx, by, boxW, boxH);
+const bx = cx - boxW / 2;
+const by = cy - boxH / 2;
 
-  const textY = by + 95;
+// Panel
+drawRect(bx, by, boxW, boxH, "rgba(20,20,20,0.95)");
+ctx.strokeStyle = "rgba(255,255,255,0.25)";
+ctx.strokeRect(bx, by, boxW, boxH);
 
-drawText(slide.title, cx, by + 48, 32, "center", "#fff", TITLE_FONT);
-drawWrappedText(slide.text, cx, textY, boxW - 80, 20, 14, "center", "#fff", BASE_FONT);
+// Dynamic spacing
+const titleY = by + Math.max(36, boxH * 0.14);
+const textY  = titleY + Math.max(36, boxH * 0.12);
 
-  drawText(
-    `Slide ${state.tutorial.index + 1} / ${TUTORIAL_SLIDES.length}`,
-    cx, by + boxH - 70, 12, "center", "rgba(255,255,255,0.55)", BASE_FONT
-  );
+// Slightly smaller text on small screens
+const titleSize = window.innerWidth < 600 ? 24 : 32;
+const bodySize  = window.innerWidth < 600 ? 13 : 14;
 
-  drawText("Click to continue", cx, by + boxH - 38, 14, "center", "rgba(255,255,255,0.75)", BASE_FONT);
+// Title
+drawText(slide.title, cx, titleY, titleSize, "center", "#fff", TITLE_FONT);
+
+// Wrapped body text
+drawWrappedText(
+  slide.text,
+  cx,
+  textY,
+  boxW - 60,
+  20,
+  bodySize,
+  "center",
+  "#fff",
+  BASE_FONT
+);
+
 
   // simple click hitbox (optional)
   state._tutorialUI = { x: bx, y: by, w: boxW, h: boxH };
@@ -10374,6 +10413,120 @@ if (state.mode === "overworld" && _largeFront && _largeFront.length) {
 
 }
 
+function drawActivityLogOverlay() {
+  // No logs, no overlay.
+  if (!Array.isArray(state.actionLog) || state.actionLog.length === 0) {
+    state._logUI = null;
+    return;
+  }
+
+  // Overlay sits over the WORLD area, not the bottom inventory UI.
+  const pad = 10;
+
+  const worldLeft = UI_LEFTBAR_W + pad;
+  const worldTop  = UI_TOP_H + pad;
+
+  const worldW = (viewTiles().viewW * TILE_SIZE) - pad * 2;
+  const worldH = (window.innerHeight - UI_TOP_H - UI_BOTTOM_H) - pad * 2;
+
+  if (worldW <= 0 || worldH <= 0) {
+    state._logUI = null;
+    return;
+  }
+
+  // Keep it narrow-ish on desktop, but let it breathe on mobile.
+  const logW = Math.min(worldW, 520);
+  const lx = worldLeft;
+  const ly = worldTop;
+
+  const lineH = 20;
+  const maxCollapsedLines = 3;
+
+  // Height depends on collapsed vs expanded
+  const maxExpandedH = Math.min(260, Math.floor(worldH * 0.45));
+  const logH = state.logExpanded
+    ? Math.max(120, maxExpandedH)
+    : (pad + maxCollapsedLines * lineH + pad);
+
+  state._logUI = { x: lx, y: ly, w: logW, h: logH };
+
+  // Background: semi-transparent at top, fades to transparent at bottom.
+  const g = ctx.createLinearGradient(0, ly, 0, ly + logH);
+  g.addColorStop(0.0, "rgba(0,0,0,0.55)");
+  g.addColorStop(0.55, "rgba(0,0,0,0.25)");
+  g.addColorStop(1.0, "rgba(0,0,0,0.00)");
+
+  ctx.fillStyle = g;
+  ctx.fillRect(lx, ly, logW, logH);
+
+  // Subtle top border so it reads like a panel without screaming.
+  ctx.strokeStyle = "rgba(255,255,255,0.14)";
+  ctx.beginPath();
+  ctx.moveTo(lx, ly + 0.5);
+  ctx.lineTo(lx + logW, ly + 0.5);
+  ctx.stroke();
+
+  // Decide how many lines to show based on height.
+  const usableH = logH - pad * 2;
+  const visible = Math.max(1, Math.floor(usableH / lineH));
+
+  const all = state.actionLog;
+  const start = Math.max(0, all.length - visible);
+  const logs = all.slice(start, start + visible);
+
+  let yy = ly + pad + 2;
+
+  for (const raw0 of logs) {
+    // --- Display-time grammar cleanup (doesn't touch game logic) ---
+    let rawLine = raw0;
+
+    // "2 Woods" -> "2 Wood" (uncountable resource tone)
+    rawLine = rawLine.replace(/\b(\d+)\s+Woods\b/g, "$1 Wood");
+
+    // Fix "an Hammer" etc: " an " before consonant-start word -> " a "
+    rawLine = rawLine.replace(/\ban\s+([bcdfghjklmnpqrstvwxyz])/gi, "a $1");
+
+    const line = "> " + rawLine;
+    const lower = rawLine.toLowerCase();
+
+    // Decide subject color (same vibe as your existing log)
+    let subjectColor = null;
+
+    if (lower.includes("harvest") || lower.includes("caught") || lower.includes("picked up")) {
+      subjectColor = "rgba(120,255,120,0.95)";
+    } else if (lower.includes("crafted")) {
+      subjectColor = "rgba(120,220,255,0.95)";
+    } else if (lower.includes("placed") || lower.includes("built") || lower.includes("constructed")) {
+      subjectColor = "rgba(255,200,120,0.95)";
+    } else if (lower.includes("found") || lower.includes("discovered") || lower.includes("opened") || lower.includes("got")) {
+      subjectColor = "rgba(190,140,255,0.95)";
+    } else if (lower.includes("hurt") || lower.includes("damaged") || lower.includes("hit")) {
+      subjectColor = "rgba(255,120,120,0.95)";
+    }
+
+    // Clip so text never runs outside the overlay width.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(lx + pad, ly + pad, logW - pad * 2, logH - pad * 2);
+    ctx.clip();
+
+    ctx.font = "14px system-ui";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = subjectColor || "rgba(255,255,255,0.92)";
+
+    // Simple truncation so it doesn't spill off-screen.
+    const maxChars = Math.max(8, Math.floor((logW - pad * 2) / 7));
+    const out = line.length > maxChars ? (line.slice(0, maxChars - 1) + "…") : line;
+
+    ctx.fillText(out, lx + pad, yy);
+
+    ctx.restore();
+
+    yy += lineH;
+  }
+}
+
 function drawInventoryUI() {
   const baseY = window.innerHeight - UI_BOTTOM_H;
   drawRect(0, baseY, window.innerWidth, UI_BOTTOM_H, "rgba(0,0,0,0.78)");
@@ -10447,178 +10600,6 @@ if (!state.craftingOpen && i === state.selectedInvIdx) {
       ctx.lineWidth = 1;
     }
   }
-
-  // ---- Activity Log (right-side panel) ----
-  const logW = 420;
-  const lx = UI_LEFTBAR_W + (viewTiles().viewW * TILE_SIZE) + pad;
-  const ly = UI_TOP_H + pad;
-  const logH = window.innerHeight - UI_TOP_H - UI_BOTTOM_H - pad * 2;
-
-  state._logUI = { x: lx, y: ly, w: logW, h: logH };
-
-  drawRect(lx, ly, logW, logH, "rgba(0,0,0,0.85)");
-  ctx.strokeStyle = "rgba(255,255,255,0.15)";
-  ctx.strokeRect(lx, ly, logW, logH);
-
-  drawText("Activity Log", lx + 10, ly + 14, 13);
-
-  const visible = Math.max(1, Math.floor((logH - 30) / 20));
-  const start = state.logScroll;
-  const logs = state.actionLog.slice(start, start + visible);
-
-  let yy = ly + 34;
-
-  for (const raw0 of logs) {
-    // ---- Display-time grammar cleanup (doesn't touch game logic) ----
-    let rawLine = raw0;
-
-    // "2 Woods" -> "2 Wood" (uncountable resource tone)
-    rawLine = rawLine.replace(/\b(\d+)\s+Woods\b/g, "$1 Wood");
-
-    // Fix "an Hammer" etc: " an " before consonant-start word -> " a "
-    // (Good enough rule: if next word starts with consonant letter)
-    rawLine = rawLine.replace(/\ban\s+([bcdfghjklmnpqrstvwxyz])/gi, "a $1");
-
-    const line = "> " + rawLine;
-    const lower = rawLine.toLowerCase();
-
-    // Decide subject color
-    let subjectColor = null;
-
-    if (lower.includes("harvest") || lower.includes("caught") || lower.includes("picked up")) {
-      subjectColor = "rgba(120,255,120,0.95)";
-    } else if (lower.includes("crafted")) {
-      subjectColor = "rgba(120,220,255,0.95)";
-    } else if (lower.includes("placed") || lower.includes("built") || lower.includes("constructed")) {
-      subjectColor = "rgba(255,200,120,0.95)";
-    } else if (lower.includes("found") || lower.includes("discovered") || lower.includes("opened") || lower.includes("got")) {
-      subjectColor = "rgba(190,140,255,0.95)";
-    }
-
-    // If we don't know the action type, draw whole line in white
-    if (!subjectColor) {
-      drawText(line, lx + 10, yy, 12, "left", "rgba(255,255,255,0.85)");
-      yy += 20;
-      continue;
-    }
-
-    // Everything AFTER these phrases is "subject-ish"
-    // (Order matters: longer phrases first)
-    const subjectStartsAfter = [
-      "picked up ",
-      "constructed ",
-      "harvested ",
-      "discovered ",
-      "opened ",
-      "crafted ",
-      "placed ",
-      "built ",
-      "found an ",
-      "found a ",
-      "found ",
-      "got an ",
-      "got a ",
-      "got ",
-      "caught "
-    ];
-
-    let cutIdx = -1;
-    for (const phrase of subjectStartsAfter) {
-      const idx = lower.indexOf(phrase);
-      if (idx !== -1) {
-        cutIdx = idx + phrase.length;
-        break;
-      }
-    }
-
-    if (cutIdx === -1 || cutIdx >= rawLine.length) {
-      drawText(line, lx + 10, yy, 12, "left", "rgba(255,255,255,0.85)");
-      yy += 20;
-      continue;
-    }
-
-    // Subject chunk (may include qty / multiword name)
-    let subjectChunk = rawLine.slice(cutIdx).trim();
-    subjectChunk = subjectChunk.replace(/[!?.,]+$/, ""); // strip trailing punctuation
-
-    // Strip leading articles from the COLORED part only
-    // (keep them white by shifting them into the prefix)
-    let leadingArticle = "";
-    const subjLower = subjectChunk.toLowerCase();
-    if (subjLower.startsWith("a ")) {
-      leadingArticle = subjectChunk.slice(0, 2); // "a "
-      subjectChunk = subjectChunk.slice(2);
-    } else if (subjLower.startsWith("an ")) {
-      leadingArticle = subjectChunk.slice(0, 3); // "an "
-      subjectChunk = subjectChunk.slice(3);
-    } else if (subjLower.startsWith("the ")) {
-      leadingArticle = subjectChunk.slice(0, 4); // "the "
-      subjectChunk = subjectChunk.slice(4);
-    }
-
-    subjectChunk = subjectChunk.trim();
-
-    // If subject becomes empty, fallback
-    if (!subjectChunk) {
-      drawText(line, lx + 10, yy, 12, "left", "rgba(255,255,255,0.85)");
-      yy += 20;
-      continue;
-    }
-
-    // We render as: prefix (white) + leadingArticle (white) + subjectChunk (colored) + suffix (white)
-    // Build the exact prefix string by reconstructing up to the colored subject
-    // Find the subjectChunk occurrence from the end to avoid matching earlier words
-    const full = "> " + rawLine;
-    const needle = subjectChunk;
-    const subjIdx = full.toLowerCase().lastIndexOf(needle.toLowerCase());
-
-    if (subjIdx === -1) {
-      drawText(full, lx + 10, yy, 12, "left", "rgba(255,255,255,0.85)");
-      yy += 20;
-      continue;
-    }
-
-    // Prefix should include everything up to the subject chunk, but keep the article white too.
-    // If we detected a leadingArticle, it should appear immediately before the subject chunk.
-    // So we draw prefix up to (subjIdx - leadingArticle.length), then draw leadingArticle (white),
-    // then subjectChunk (colored), then suffix.
-    const prefixEnd = Math.max(0, subjIdx - leadingArticle.length);
-    const prefix = full.slice(0, prefixEnd);
-    const suffix = full.slice(subjIdx + subjectChunk.length);
-
-    ctx.font = "12px system-ui";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-
-    // prefix
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.fillText(prefix, lx + 10, yy);
-    let xoff = ctx.measureText(prefix).width;
-
-    // article (white)
-    if (leadingArticle) {
-      ctx.fillText(leadingArticle, lx + 10 + xoff, yy);
-      xoff += ctx.measureText(leadingArticle).width;
-    }
-
-    // subject (colored)
-    ctx.fillStyle = subjectColor;
-    ctx.fillText(subjectChunk, lx + 10 + xoff, yy);
-    xoff += ctx.measureText(subjectChunk).width;
-
-    // suffix (white)
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.fillText(suffix, lx + 10 + xoff, yy);
-
-    yy += 20;
-  }
-
-  if (state.craftingOpen) drawCraftingPopup(baseY);
-  if (state.coordsOpen) drawCoordsModal();
-  if (state.stockpileOpen) drawStockpileModal();
-  if (state.collectiblesOpen) drawCollectiblesModal();
-  if (state.treasureOpen) drawTreasureModal();
-}
 
 function invIndexAtScreen(px, py) {
   const baseY = window.innerHeight - UI_BOTTOM_H;
@@ -12592,6 +12573,14 @@ if (state.title?.open) {
   return;
 }
 
+// Activity log overlay: tap to toggle expanded/collapsed, and eat the click.
+if (isInActivityLog(px, py)) {
+  state.logExpanded = !state.logExpanded;
+  if (typeof playSound === "function") playSound("click");
+  state.pointer.blocked = false;
+  return;
+}
+
   if (typeof updateMapCursor === "function") updateMapCursor(px, py);
 
 // stop dragging if we were dragging volume
@@ -13521,6 +13510,7 @@ if (state.cutscene?.open) {
   drawLeftSidebar();
   drawSpeechBubbles();
   drawNightOverlay();
+  drawActivityLogOverlay();
   drawInventoryUI();
   drawChatLog();
   drawMenu();
