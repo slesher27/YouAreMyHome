@@ -10600,6 +10600,7 @@ if (!state.craftingOpen && i === state.selectedInvIdx) {
       ctx.lineWidth = 1;
     }
   }
+}
 
 function invIndexAtScreen(px, py) {
   const baseY = window.innerHeight - UI_BOTTOM_H;
