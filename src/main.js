@@ -13626,14 +13626,14 @@ enableOverworldObjectsProxy();
   // Make sure players don’t start in water / invalid tiles.
   ensurePlayersNotOnWater(state.world);
 
-  // Actually connect to the co-op server (this used to run only on boot failure... lol).
+  // Connect to co-op server (local when developing, Render when hosted)
 if (!state.net?.ws || state.net.ws.readyState !== 1) {
   const WS_URL =
-  location.protocol === "https:"
-    ? "wss://YOUR-WS-SERVER.onrender.com"
-    : "ws://YOUR-WS-SERVER.onrender.com";
+    location.hostname === "localhost"
+      ? "ws://localhost:8081"
+      : "wss://yam-server.onrender.com";
 
-connectOnline(WS_URL);
+  connectOnline(WS_URL);
 }
 
   // camera start
