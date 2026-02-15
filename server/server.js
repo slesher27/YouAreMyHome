@@ -58,10 +58,11 @@ function pushLog(text, by = "server") {
   return entry;
 }
 
-function broadcast(obj) {
+function broadcastToRoom(room, obj) {
   const msg = JSON.stringify(obj);
   for (const ws of wss.clients) {
-    if (ws.readyState === 1) ws.send(msg);
+    const meta = clients.get(ws);
+    if (ws.readyState === 1 && meta?.room === room) ws.send(msg);
   }
 }
 
@@ -79,34 +80,57 @@ function isValidWorldPayload(w) {
 }
 
 wss.on("connection", (ws) => {
-  // assign first free slot
-  let idx = null;
-  const used = new Set(clients.values());
-  if (!used.has(0)) idx = 0;
-  else if (!used.has(1)) idx = 1;
+// --- handshake: wait for client "hello" so they can claim a character + room ---
+clients.set(ws, { room: null, idx: null });
+console.log("[WS] connect -> awaiting hello. clients:", clients.size);
 
+// helper: pick slot based on want
+function chooseIdxForWant(want, used) {
+  // want "scott" => idx 0 (p1), want "cristina" => idx 1 (p2)
+  const preferred = (want === "cristina") ? 1 : (want === "scott") ? 0 : null;
+  if (preferred !== null && !used.has(preferred)) return preferred;
+  if (!used.has(0)) return 0;
+  if (!used.has(1)) return 1;
+  return null;
+}
+
+ ws.on("message", (raw, isBinary) => {
+  let msg;
+
+// --- HELLO: claim room + preferred character ---
+if (msg.type === "hello") {
+  const want = (msg.want === "scott" || msg.want === "cristina") ? msg.want : null;
+  const room = (typeof msg.room === "string" && msg.room.trim()) ? msg.room.trim() : "scott-cristina";
+
+  // compute used slots in this room
+  const used = new Set();
+  for (const v of clients.values()) {
+    if (v && v.room === room && (v.idx === 0 || v.idx === 1)) used.add(v.idx);
+  }
+
+  const idx = chooseIdxForWant(want, used);
   if (idx === null) {
     ws.close();
-    console.log("[WS] reject (2 clients already connected). clients:", clients.size);
+    console.log("[WS] reject (room full):", room);
     return;
   }
 
-  clients.set(ws, idx);
-  console.log("[WS] connect -> assigned", players[idx].id, "clients:", clients.size);
+  clients.set(ws, { room, idx });
+  console.log("[WS] hello -> room", room, "assigned", players[idx].id);
 
   // welcome
   send(ws, { type: "welcome", playerId: players[idx].id });
 
-  // send current log to new client
+  // send current log
   send(ws, { type: "log_init", seq: logSeq, entries: actionLog });
 
-  // if server already has a chosen world, push it immediately
+  // if server has a world already, push it
   if (activeWorldPayload) {
     send(ws, { type: "world", worldId: activeWorldId, world: activeWorldPayload });
   }
 
- ws.on("message", (raw, isBinary) => {
-  let msg;
+  return;
+}
 
   // ws can hand you Buffer/ArrayBuffer/etc. Don't gamble, convert to string.
   const text =

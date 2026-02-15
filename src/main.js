@@ -767,6 +767,12 @@ function connectOnline(url) {
     if (typeof flushBufferedLogs === "function") flushBufferedLogs();
   };
 
+const params = new URLSearchParams(location.search);
+const room = params.get("room") || "scott-cristina"; // default room
+const want = loadSavedProfile?.() || null;           // "scott" or "cristina" (or null)
+
+sendNet({ type: "hello", room, want });
+
   ws.onmessage = (ev) => {
     let msg = null;
 
