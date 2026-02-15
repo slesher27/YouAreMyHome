@@ -120,6 +120,7 @@ function chooseIdxForWant(want, used) {
     return;
   }
 
+try {
 // --- HELLO: claim room + preferred character ---
 if (msg.type === "hello") {
   const want = (msg.want === "scott" || msg.want === "cristina") ? msg.want : null;
@@ -258,9 +259,9 @@ if (changed) {
 }
 
     // existing input path
-    if (msg.type !== "input") return;
+if (msg.type !== "input") return;
 
-    const meta = clients.get(ws);
+const meta = clients.get(ws);
 if (!meta || meta.idx == null) return;
 
 const i = meta.idx | 0;
@@ -268,6 +269,7 @@ const p = players[i];
 if (!p) return;
 
 const pl = msg.payload;
+
 
 // ✅ Activity log input
 if (pl?.type === "log") {
@@ -349,6 +351,10 @@ if (changed) {
 const logs = logsForSnapshot();
 pendingLogEntries.length = 0;
 broadcast({ type: "snapshot", state: { players }, ops, logs });
+
+} catch (err) {
+  console.error("[WS] message handler crashed:", err);
+}
   });
 
   ws.on("close", () => {
