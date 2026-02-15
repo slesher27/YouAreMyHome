@@ -755,20 +755,21 @@ function connectOnline(url) {
   state.net._pendingLogTexts = state.net._pendingLogTexts || [];
 
   const ws = new WebSocket(url);
-  state.net.ws = ws;
-
-  ws.onopen = () => {
-    console.log("[NET] connected:", url);
-
-    // Flush any log lines created before ws was ready
-    if (typeof flushBufferedLogs === "function") flushBufferedLogs();
-  };
+state.net.ws = ws;
 
 const params = new URLSearchParams(location.search);
 const room = params.get("room") || "scott-cristina"; // default room
 const want = loadSavedProfile?.() || null;           // "scott" or "cristina" (or null)
 
-sendNet({ type: "hello", room, want });
+ws.onopen = () => {
+  console.log("[NET] connected:", url);
+
+  // ✅ Send HELLO only after socket is actually open
+  sendNet({ type: "hello", room, want });
+
+  // Flush any log lines created before ws was ready
+  if (typeof flushBufferedLogs === "function") flushBufferedLogs();
+};
 
   ws.onmessage = (ev) => {
     let msg = null;
