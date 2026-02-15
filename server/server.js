@@ -184,10 +184,13 @@ if (msg.type === "world_set") {
     }
 
     // If a world already exists, ignore further world_set to avoid tug-of-war.
-    if (activeWorldPayload) {
-      console.warn("[WS] world_set ignored (world already set):", activeWorldId);
-      return;
-    }
+   if (activeWorldPayload) {
+  console.warn("[WS] world_set ignored (world already set):", activeWorldId);
+
+  // ✅ Heal the host immediately: send the server's world so they don't stay in a different local world.
+  send(ws, { type: "world", worldId: activeWorldId, world: activeWorldPayload });
+  return;
+}
 
     activeWorldId = msg.worldId;
     activeWorldPayload = msg.world;
@@ -239,17 +242,17 @@ if (msg.type === "world_op") {
     }
   }
 
-  if (changed) {
-    console.log("[WS] world_op applied:", op);
+if (changed) {
+  console.log("[WS] world_op applied:", op);
 
-    // ✅ Immediate op broadcast so P2 doesn't depend on timing
-    broadcast({ type: "world_op", op });
+  // ✅ Broadcast ONLY the op. Do NOT spam the full world (it’s massive and will disconnect clients).
+  broadcast({ type: "world_op", op });
 
-    // ✅ Hard guarantee: push full world shortly after
-    scheduleWorldPush();
-  } else {
-    console.warn("[WS] world_op had no effect (out of bounds / bad rows):", op);
-  }
+  // Optional: queue op so late clients can catch up via snapshots
+  pendingWorldOps.push(op);
+} else {
+  console.warn("[WS] world_op had no effect (out of bounds / bad rows):", op);
+}
 
   return;
 }
@@ -329,12 +332,6 @@ if (changed) {
 } else {
   console.warn("[WS] input world_op had no effect:", op);
 }
-
-  // Important: don't fall through into movement logic
-const ops = pendingWorldOps.length ? pendingWorldOps.splice(0, pendingWorldOps.length) : [];
-const logs = logsForSnapshot();
-pendingLogEntries.length = 0;
-broadcast({ type: "snapshot", state: { players }, ops, logs });
 
   return;
 }

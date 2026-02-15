@@ -856,6 +856,13 @@ if (state.net.isHost && !state.net._sentWorldSet) {
     console.error("[NET] host world_set failed:", e);
   }
 }
+// ✅ IMPORTANT: host must ALSO request the server world.
+// If Render already had a world, server will ignore world_set (first-writer-wins),
+// and without this request host will stay on its local world forever.
+if (state.net.isHost && typeof sendNet === "function") {
+  console.log("[NET] host requesting server world (sync/override check)");
+  sendNet({ type: "world_request" });
+}
 
         // Non-host requests current world
         if (!state.net.isHost && typeof sendNet === "function") {
@@ -1016,17 +1023,17 @@ enableOverworldObjectsProxy();
     }
   };
 
-  ws.onclose = () => {
-    console.log("[NET] disconnected");
-    state.net.enabled = false;
-    state.net.ws = null;
-    state.net.playerId = null;
-    state.net.isHost = false;
-  };
-
-  ws.onerror = (err) => {
-    console.error("[NET] error:", err);
-  };
+ws.onclose = (ev) => {
+  console.log("[NET] disconnected", {
+    code: ev?.code,
+    reason: ev?.reason,
+    wasClean: ev?.wasClean
+  });
+  state.net.enabled = false;
+  state.net.ws = null;
+  state.net.playerId = null;
+  state.net.isHost = false;
+};
 }
 
 function sendNetInput(payload) {
