@@ -260,16 +260,18 @@ if (changed) {
     // existing input path
     if (msg.type !== "input") return;
 
-    const i = clients.get(ws);
-    if (i == null) return;
+    const meta = clients.get(ws);
+if (!meta || meta.idx == null) return;
 
-    const p = players[i];
-    const pl = msg.payload;
+const i = meta.idx | 0;
+const p = players[i];
+if (!p) return;
+
+const pl = msg.payload;
 
 // ✅ Activity log input
 if (pl?.type === "log") {
-  const entry = pushLog(pl.text, players[i].id);
-
+const entry = pushLog(pl.text, players[i].id);
 console.log("[WS][LOG] RECEIVED from", players[i].id, "=>", entry);
 
   // immediate broadcast
