@@ -1011,6 +1011,31 @@ enableOverworldObjectsProxy();
       }
 
       // ------------------------
+      // CHAT (real-time)
+      // ------------------------
+      if (msg.type === "chat") {
+        const pid = msg.playerId;
+        const fromIndex = (pid === "p2") ? 1 : 0;
+
+        const text = String(msg.text ?? "").trim();
+        if (!text) return;
+
+        // Dedupe: swallow the echo of our own message id
+        const id = String(msg.id ?? "");
+        state.net._pendingChatIds = state.net._pendingChatIds || [];
+        if (id) {
+          const k = state.net._pendingChatIds.indexOf(id);
+          if (k !== -1) {
+            state.net._pendingChatIds.splice(k, 1);
+            return;
+          }
+        }
+
+        applyChatMessage(fromIndex, text, { t: msg.t });
+        return;
+      }
+
+      // ------------------------
       // SERVER DEBUG
       // ------------------------
       if (msg.type === "world_applied") {
@@ -1022,6 +1047,7 @@ enableOverworldObjectsProxy();
     } catch (err) {
       console.error("[NET] onmessage handler crashed:", err, "raw:", ev.data);
     }
+
   };
 
 ws.onclose = (ev) => {
@@ -1444,10 +1470,17 @@ function positionChatInput() {
   wrap.style.top = `${y}px`;
 }
 
-function sendChatMessage(fromIndex, text) {
+function applyChatMessage(fromIndex, text, opts = {}) {
   const now = performance.now();
 
-  state.chatMessages.push({ fromIndex, text, t: now });
+  state.chatMessages = state.chatMessages || [];
+  state.speechBubbles = state.speechBubbles || [null, null];
+
+  state.chatMessages.push({
+    fromIndex,
+    text,
+    t: (typeof opts.t === "number") ? opts.t : now
+  });
   if (state.chatMessages.length > 30) state.chatMessages.shift();
 
   // Speech bubble above the sender
@@ -1456,6 +1489,36 @@ function sendChatMessage(fromIndex, text) {
     until: now + 3500
   };
 
+  // Only play sound for messages that didn't originate on THIS client
+  if (!opts.silent) playSound("message");
+}
+
+function sendChatMessage(fromIndex, text) {
+  const clean = String(text ?? "").trim();
+  if (!clean) return;
+
+  // Always show instantly on the sender
+  applyChatMessage(fromIndex, clean, { silent: true });
+
+  // OFFLINE? done.
+  const ws = state.net?.ws;
+  const canSend = !!(state.net?.enabled && ws && ws.readyState === 1);
+  if (!canSend) {
+    // If you ever allow “offline chat”, keep it local only.
+    playSound("message");
+    return;
+  }
+
+  // Dedupe: generate an id, remember it until echo comes back
+  state.net._pendingChatIds = state.net._pendingChatIds || [];
+  const id = `c_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  state.net._pendingChatIds.push(id);
+  if (state.net._pendingChatIds.length > 200) state.net._pendingChatIds.shift();
+
+  // Send via proven input channel
+  sendNet({ type: "input", payload: { type: "chat", id, text: clean } });
+
+  // Play sound locally (we silenced applyChatMessage above)
   playSound("message");
 }
 
@@ -10435,7 +10498,7 @@ function drawActivityLogOverlay() {
   }
 
   // Activity log size
-const logW = Math.min(worldW, 320);
+const logW = Math.min(worldW, 280);
 const lx = worldLeft + worldW - logW; // RIGHT-ANCHOR
 const ly = worldTop;
 

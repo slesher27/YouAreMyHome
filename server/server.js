@@ -456,7 +456,7 @@ ws.on("message", (raw, isBinary) => {
       return;
     }
 
-    // Allow world ops to come through the input channel
+        // Allow world ops to come through the input channel
     if (pl?.type === "world_op") {
       const op = pl.op;
       console.log("[WS] got input world_op:", op, "hasWorld?", !!activeWorldPayload);
@@ -495,6 +495,26 @@ ws.on("message", (raw, isBinary) => {
       } else {
         console.warn("[WS] input world_op had no effect:", op);
       }
+
+      return;
+    }
+
+       // ✅ CHAT input (broadcast to room)
+    if (pl?.type === "chat") {
+      const room = (meta?.room && String(meta.room).trim()) ? String(meta.room).trim() : "scott-cristina";
+
+      const playerId = (meta.idx | 0) === 1 ? "p2" : "p1";
+      const id = String(pl.id ?? "");
+      const text = String(pl.text ?? "").trim().slice(0, 200);
+      if (!text) return;
+
+      broadcastToRoom(room, {
+        type: "chat",
+        playerId,
+        id,
+        text,
+        t: Date.now()
+      });
 
       return;
     }
