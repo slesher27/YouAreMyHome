@@ -2892,11 +2892,11 @@ function handleSettingsPointerUp() {
 
 // ---- Camera math ----------------------------------------------------------------------------------------
 function viewTiles() {
-  // Reserve space for left sidebar + right-side log panel + a small safe pad
-  const LOG_PANEL_W = 440; // matches log width + padding
+  // World should fill the screen width (minus the left sidebar).
+  // No reserved right panel anymore.
   const SAFE_PAD = 16;
 
-  const usableW = window.innerWidth - UI_LEFTBAR_W - LOG_PANEL_W - SAFE_PAD;
+  const usableW = window.innerWidth - UI_LEFTBAR_W - SAFE_PAD;
   const usableH = window.innerHeight - UI_TOP_H - UI_BOTTOM_H;
 
   const viewW = Math.floor(usableW / TILE_SIZE);
@@ -10434,10 +10434,10 @@ function drawActivityLogOverlay() {
     return;
   }
 
-  // Keep it narrow-ish on desktop, but let it breathe on mobile.
-  const logW = Math.min(worldW, 520);
-  const lx = worldLeft;
-  const ly = worldTop;
+  // Activity log size
+const logW = Math.min(worldW, 520);
+const lx = worldLeft + worldW - logW; // RIGHT-ANCHOR
+const ly = worldTop;
 
   const lineH = 20;
   const maxCollapsedLines = 3;
@@ -12179,12 +12179,6 @@ function isInWorldBounds(px, py) {
   return px >= left && px < right && py >= top && py < bottom;
 }
 
-function isInRightSidebar(px) {
-  const worldPxW = viewTiles().viewW * TILE_SIZE;
-  const worldRight = UI_LEFTBAR_W + worldPxW;
-  return px >= worldRight;
-}
-
 function ensureActivityLogDOM() {
   // Disabled: we do NOT use a separate DOM activity log panel.
   return null;
@@ -12209,18 +12203,22 @@ function isInActivityLog(px, py) {
   // Prefer the real rect if it exists
   if (state._logUI) return hitRect(px, py, state._logUI);
 
-  // Fallback: match your draw layout (same assumptions)
+  // Fallback: match the overlay layout (right-anchored)
   const pad = 10;
   const { viewW } = viewTiles();
-  const logX = UI_LEFTBAR_W + (viewW * TILE_SIZE) + pad;
-  const logY = UI_TOP_H + pad;
-  const logW = 420;
-  const logH = window.innerHeight - UI_TOP_H - UI_BOTTOM_H - pad * 2;
+  const worldLeft = UI_LEFTBAR_W + pad;
+  const worldW = (viewW * TILE_SIZE) - pad * 2;
 
-  return (
-    px >= logX && px <= (logX + logW) &&
-    py >= logY && py <= (logY + logH)
-  );
+  const logW = Math.min(worldW, 520);
+  const logX = worldLeft + worldW - logW;
+  const logY = UI_TOP_H + pad;
+
+  const logH = state.logExpanded
+    ? Math.min(260, Math.floor((window.innerHeight - UI_TOP_H - UI_BOTTOM_H) * 0.45))
+    : (pad + 3 * 20 + pad);
+
+  return px >= logX && px <= (logX + logW) && py >= logY && py <= (logY + logH);
+
 }
 
 function updateMapCursor(px, py) {
