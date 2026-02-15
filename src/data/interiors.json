@@ -1,0 +1,489 @@
+[
+  {
+    "id": "house_small",
+    "name": "Cabin (Small)",
+    "floorTile": "floor_wood",
+    "wallTile": "wall_wood",
+    "doorTile": "door_mat",
+	"fixedLayout": true,
+	"layout": {
+		"tiles": [
+    [
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "floor_wood",
+      "wall_wood"
+    ],
+    [
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "door_mat",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood",
+      "wall_wood"
+    ]
+  ],
+  "walls": {
+    "v": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "h": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "objects": [
+    {
+      "x": 1,
+      "y": 1,
+      "id": "counter",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "id": "sink",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "id": "stove",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "id": "refrigerator",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "id": "counter",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 7,
+      "y": 1,
+      "id": "chair_right",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 8,
+      "y": 1,
+      "id": "table",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 9,
+      "y": 1,
+      "id": "chair_left",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "id": "storage_chest",
+      "meta": {}
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "id": "bookshelf",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+    {
+      "x": 9,
+      "y": 4,
+      "id": "dresser",
+      "meta": {
+        "wTiles": 1
+      }
+    },
+{
+  "x": 7,
+  "y": 5,
+  "id": "bed",
+  "meta": {
+    "wTiles": 2,
+    "hTiles": 2,
+    "blocksMask": [
+      [1, 1],
+      [0, 0]
+    ]
+  }
+}
+
+  ]
+}
+  }
+]

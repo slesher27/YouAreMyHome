@@ -1,0 +1,15 @@
+[
+  { "id": "grass", "name": "Grass", "walkable": true, "color": "#2f6f3a", "icon": "", "tags": ["land"] },
+  { "id": "sand",  "name": "Sand",  "walkable": true, "color": "#c9b36a", "icon": "", "tags": ["land"] },
+  { "id": "water", "name": "Water", "walkable": false, "color": "#2a5ea8", "icon": "", "tags": ["water"] },
+
+  { "id": "floor_wood", "name": "Wood Floor", "walkable": true, "color": "#7a552f", "icon": "🟫", "tags": ["interior"] },
+  { "id": "wall_wood",  "name": "Wood Wall",  "walkable": false, "color": "#5b3d22", "icon": "🧱", "tags": ["interior"] },
+  { "id": "door_mat",   "name": "Door",       "walkable": true, "color": "#3b2a18", "icon": "🚪", "tags": ["interior"] },
+  
+  {
+  "wall":  { "id": "wall",  "name": "Wall",  "walkable": false, "color": "#1a1a1a" },
+  "floor": { "id": "floor", "name": "Floor", "walkable": true,  "color": "#3b3b3b" }
+}
+
+]

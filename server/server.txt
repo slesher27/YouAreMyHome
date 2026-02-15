@@ -1,0 +1,2 @@
+ cd "C:\Users\slesh\Desktop\GPT Games\YouAreMyHome"
+ python -m http.server 8080

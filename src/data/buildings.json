@@ -1,0 +1,10 @@
+[
+  {
+    "id": "cabin",
+    "name": "Small Cabin",
+    "objectId": "house_door",
+    "size": [2, 2],
+    "cost": {},
+    "interiorId": "cabin_small"
+  }
+]

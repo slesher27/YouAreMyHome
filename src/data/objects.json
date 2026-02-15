@@ -1,0 +1,873 @@
+[
+  {
+    "id": "tree1",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree1.png"
+  },
+    "blocks": true,
+    "renewable": false,
+	"size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+
+{
+    "id": "tree2",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree2.png"
+  },
+    "blocks": true,
+    "renewable": false,
+    "size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+
+{
+    "id": "tree3",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree3.png"
+  },
+    "blocks": true,
+    "renewable": false,
+    "size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+  
+  {
+    "id": "tree4",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree4.png"
+  },
+    "blocks": true,
+    "renewable": false,
+	    "size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+  
+  {
+    "id": "tree5",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree5.png"
+  },
+    "blocks": true,
+    "renewable": false,
+	    "size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+  
+  {
+    "id": "tree6",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree6.png"
+  },
+    "blocks": true,
+    "renewable": false,
+	    "size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+  
+  {
+    "id": "tree7",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree7.png"
+  },
+    "blocks": true,
+    "renewable": false,
+	    "size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+  
+  {
+    "id": "tree8",
+    "name": "Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/tree8.png"
+  },
+    "blocks": true,
+    "renewable": false,
+	    "size": "large",
+    "hp": 2,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "axe",
+      "gives": { "wood": 2 }
+    }
+  },
+  
+  {
+    "id": "stump",
+    "name": "Tree Stump",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/stump.png"
+  },
+    "blocks": false,
+	"size": "medium",
+    "hp": 1
+  },
+
+  {
+    "id": "stump_seedling",
+    "name": "Baby Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/stump_seedling.png"
+  },
+    "blocks": false,
+    "size": "medium",
+    "hp": 1
+  },
+
+  {
+    "id": "cave",
+    "name": "Cave Entrance",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/cave.png"
+  },
+    "blocks": true,
+	"size": "large",
+    "hp": 1
+  },
+  
+    {
+    "id": "hole",
+    "name": "Cave Entrance",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/hole.png"
+  },
+    "blocks": true,
+	"size": "medium",
+    "hp": 1
+  },
+  
+      {
+    "id": "portal",
+    "name": "Mysterious Portal",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/portal.png"
+  },
+    "blocks": true,
+	"size": "medium",
+    "hp": 1
+  },
+  
+        {
+    "id": "runestone",
+    "name": "Mysterious Inscription",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/runestone.png"
+  },
+    "blocks": true,
+	"size": "medium",
+    "hp": 1
+  },
+  
+{
+    "id": "wheat",
+    "name": "Wheat",
+    "icon": "🌾",
+    "blocks": false,
+    "renewable": false,
+	"size": "medium",
+    "hp": 1,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 30,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "pickup": { "gives": { "wheat": 2 }
+    }
+  },
+
+
+  {
+    "id": "apple_tree",
+    "name": "Apple Tree",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/apple_tree.png"
+  },
+    "blocks": true,
+    "renewable": true,
+	"size": "large",
+    "hp": 6,
+    "harvest": {
+      "gives": { "apple": 1 }
+    }
+  },
+
+ {
+    "id": "berry_bush",
+    "name": "Berry Bush",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/berry_bush.png"
+  },
+    "blocks": true,
+    "renewable": true,
+	"size": "medium",
+    "hp": 3,
+    "harvest": {
+      "gives": { "blueberry": 3 }
+    }
+  },
+
+ {
+    "id": "grapevine",
+    "name": "Grapevine",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/berry_bush.png"
+  },
+    "blocks": true,
+    "renewable": true,
+	"size": "medium",
+    "hp": 3,
+    "harvest": {
+      "gives": { "grapes": 3 }
+    }
+  },
+
+ {
+    "id": "bush",
+    "name": "Bush",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/bush.png" },
+    "blocks": true,
+    "renewable": false,
+	"size": "medium",
+    "hp": 3,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 50,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "gives": { "stick": 1, "fiber": 1 }
+    }
+  },
+
+  {
+    "id": "rock",
+    "name": "Rock",
+    "icon": "🪨",
+    "blocks": true,
+    "renewable": false,
+	"size": "medium",
+    "hp": 10,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass", "floor"],
+      "max": 30,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "harvest": {
+      "requiresTool": "pickaxe",
+      "gives": { "stone": 2 }
+    }
+  },
+
+  {
+    "id": "fish_spot",
+    "name": "Fishing Spot",
+    "icon": "🐟",
+    "blocks": true,
+    "renewable": true,
+	"size": "small",
+    "hp": 1,
+    "harvest": {
+      "requiresTool": "fishing_pole",
+      "gives": { "fish": 1 }
+    }
+  },
+
+  {
+    "id": "stick_pickup",
+    "name": "Sticks",
+    "icon": {
+    "type": "image",
+    "src": "src/icons/stick.png"
+  },
+    "renewable": false,
+	"size": "small",
+    "blocks": false,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 30,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "pickup": { "gives": { "stick": 1 } }
+  },
+
+  {
+    "id": "stone",
+    "name": "Stone",
+    "icon": "🪨",
+    "renewable": false,
+	"size": "tiny",
+    "blocks": false,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass", "sand", "floor"],
+      "max": 30,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "pickup": { "gives": { "stone": 1 } }
+  },
+  
+    {
+    "id": "egg_pickup",
+    "name": "Egg",
+    "icon": "🥚",
+    "renewable": false,
+	"size": "tiny",
+    "blocks": false,
+    "pickup": { "gives": { "egg": 1 } }
+  },
+
+  {
+    "id": "workbench",
+    "name": "Workbench",
+    "icon": "🛠️",
+    "blocks": true,
+	"size": "medium",
+    "station": "workbench"
+  },
+  
+    {
+    "id": "build_site",
+    "name": "Build Site",
+    "icon": { "type": "image", "src": "src/icons/build_site.png" },
+    "blocks": true,
+	  "construction": true
+  },
+  
+      {
+    "id": "foundation",
+    "name": "Foundation",
+    "icon": { "type": "image", "src": "src/icons/foundation.png" },
+    "blocks": true,
+	  "construction": true
+  },
+  
+      {
+    "id": "framing",
+    "name": "Framing",
+    "icon": { "type": "image", "src": "src/icons/framing.png" },
+    "blocks": true,
+	  "construction": true
+  },
+  
+        {
+    "id": "house",
+    "name": "House",
+    "icon": { "type": "image", "src": "src/icons/house.png" },
+    "blocks": true,
+	  "construction": true
+  },
+
+{
+  "id": "campfire",
+  "name": "Campfire",
+  "icon": { "type": "image", "src": "src/icons/campfire.png" },
+  "blocks": true,
+  "size": "medium",
+  "station": "campfire"
+},
+
+  {
+  "id": "chest",
+  "name": "Chest",
+  "icon": {
+    "type": "image",
+    "src": "src/icons/chest.png"
+  },
+  "blocks": true,
+  "size": "medium",
+  "container": { "type": "blueprint_piece", "amount": 1 }
+},
+
+  {
+  "id": "dungeon_chest",
+  "name": "Dungeon Chest",
+  "icon": {
+    "type": "image",
+    "src": "src/icons/dungeon_chest.png"
+  },
+  "blocks": true,
+  "size": "medium",
+  "container": { "type": "dungeon_key", "amount": 1 }
+},
+
+  {
+  "id": "toolbox",
+  "name": "Toolbox",
+  "icon": "🧰",
+  "blocks": true,
+  "size": "medium",
+  "container": { "type": "tool", "amount": 1 }
+},
+
+  {
+    "id": "occupied",
+    "name": "Occupied",
+    "icon": "",
+    "blocks": true
+  },
+
+{
+  "id": "stockpile",
+  "name": "Stockpile",
+  "icon": "📦",
+  "blocks": true,
+  "size": "medium",
+  "container": { "type": "stockpile" }
+},
+
+{
+    "id": "wild_mushrooms",
+    "name": "Wild Mushrooms",
+    "icon": "🍄",
+    "renewable": false,
+	"size": "tiny",
+    "blocks": false,
+    "tags": ["food"],
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass", "floor"],
+      "max": 30,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "pickup": { "gives": { "mushroom": 2 } }
+  },
+
+{
+    "id": "wild_strawberries",
+    "name": "Wild Strawberries",
+    "icon": "🍓",
+    "renewable": false,
+	"size": "tiny",
+    "blocks": false,
+    "tags": ["food"],
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 30,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "pickup": { "gives": { "strawberry": 2 } }
+  },
+
+{
+    "id": "deer",
+    "name": "Deer",
+    "icon": "🦌",
+    "renewable": false,
+	"size": "medium",
+    "blocks": true,
+    "tags": ["animal"],
+    "hp": 1,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 10,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "hunt": {
+      "requiresTool": "bow_and_arrow",
+      "gives": { "raw_meat": 2 }
+    }
+  },
+
+{
+    "id": "squirrel",
+    "name": "Squirrel",
+    "icon": "🐿️",
+    "blocks": false,
+    "tags": ["animal"],
+    "renewable": false,
+	"size": "small",
+    "hp": 1,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 10,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "hunt": {
+      "requiresTool": "bow_and_arrow",
+      "gives": { "raw_meat": 1 }
+    }
+  },
+
+{
+    "id": "rat1",
+    "name": "Rat",
+    "icon": "🐁️",
+    "blocks": false,
+    "tags": ["animal"],
+    "renewable": false,
+	"size": "small",
+    "hp": 1,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["floor"],
+      "max": 10,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "hunt": {
+      "requiresTool": "bow_and_arrow",
+      "gives": { "raw_meat": 1 }
+    }
+  },
+  
+  {
+    "id": "rat2",
+    "name": "Rat",
+    "icon": "🐀️",
+    "blocks": false,
+    "tags": ["animal"],
+    "renewable": false,
+	"size": "small",
+    "hp": 1,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["floor"],
+      "max": 10,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "hunt": {
+      "requiresTool": "bow_and_arrow",
+      "gives": { "raw_meat": 1 }
+    }
+  },
+
+{
+    "id": "cow",
+    "name": "Cow",
+    "icon": "🐄",
+    "renewable": true,
+	"size": "large",
+    "blocks": true,
+    "tags": ["animal"],
+    "hp": 2,
+    "harvest": {
+      "requiresTool": "bucket",
+      "gives": { "milk": 1 }
+    }
+  },
+
+{
+    "id": "goat",
+    "name": "A Goat Named War!",
+    "icon": "🐐",
+    "renewable": true,
+	"size": "medium",
+    "blocks": true,
+    "tags": ["animal"],
+    "hp": 2
+  },
+{
+    "id": "pig",
+    "name": "Pig",
+    "icon": "🐖",
+    "blocks": true,
+    "tags": ["animal"],
+    "renewable": false,
+	"size": "medium",
+    "hp": 1,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 10,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "hunt": {
+      "requiresTool": "bow_and_arrow",
+      "gives": { "raw_ham": 1 }
+    }
+  },
+
+{
+    "id": "chicken",
+    "name": "Chicken",
+    "icon": "🐓",
+    "blocks": false,
+    "tags": ["animal"],
+    "renewable": false,
+	"size": "small",
+    "hp": 1,
+    "spawn": {
+      "enabled": true,
+      "tiles": ["grass"],
+      "max": 10,
+      "intervalSec": 60,
+      "chance": 0.35,
+      "falloff": 2
+},
+    "hunt": {
+      "requiresTool": "bow_and_arrow",
+      "gives": { "raw_chicken": 1 }
+    }
+  },
+
+{
+    "id": "duck",
+    "name": "Duck",
+    "icon": "🦆",
+    "blocks": true,
+    "tags": ["animal"],
+    "renewable": false,
+	"size": "small",
+    "hp": 1
+   },
+
+{
+    "id": "swan",
+    "name": "Swan",
+    "icon": "🦢",
+    "blocks": true,
+    "tags": ["animal"],
+    "renewable": false,
+	"size": "small",
+    "hp": 1
+   },
+
+{
+    "id": "cat",
+    "name": "Bombadil",
+    "icon": "🐈",
+    "blocks": false,
+    "tags": ["animal"],
+	"size": "small",
+    "hp": 1
+  },
+
+{
+  "id": "counter",
+  "name": "Counter",
+  "icon": { "type": "image", "src": "src/icons/counter.png" },
+  "blocks": true,
+  "tags": ["household"],
+  "station": "counter"
+},
+
+{
+  "id": "stove",
+  "name": "Stove",
+  "icon": { "type": "image", "src": "src/icons/stove.png" },
+  "blocks": true,
+  "tags": ["household"],
+  "station": "stove"
+},
+
+{
+  "id": "refrigerator",
+  "name": "Refrigerator",
+  "icon": { "type": "image", "src": "src/icons/refrigerator.png" },
+  "blocks": true,
+  "container": { "type": "storage", "amount": 0 },
+  "tags": ["household"]
+},
+
+{
+  "id": "cupboard",
+  "name": "Cupboard",
+  "icon": { "type": "image", "src": "src/icons/cupboard.png" },
+  "blocks": true,
+  "container": { "type": "storage", "amount": 0 },
+  "tags": ["household"]
+},
+
+{
+  "id": "bed",
+  "name": "Bed",
+  "icon": { "type": "image", "src": "src/icons/bed.png" },
+  "blocks": true,
+  "tags": ["household"]
+},
+
+{
+  "id": "bookshelf",
+  "name": "Bookshelf",
+  "icon": { "type": "image", "src": "src/icons/bookshelf.png" },
+  "blocks": true,
+  "tags": ["household"]
+},
+
+{
+  "id": "chair_right",
+  "name": "Chair",
+  "icon": { "type": "image", "src": "src/icons/chair_right.png" },
+  "blocks": true,
+  "tags": ["household"]
+},
+
+{
+  "id": "chair_left",
+  "name": "Chair",
+  "icon": { "type": "image", "src": "src/icons/chair_left.png" },
+  "blocks": true,
+  "tags": ["household"]
+},
+{
+  "id": "dresser",
+  "name": "Dresser",
+  "icon": { "type": "image", "src": "src/icons/dresser.png" },
+  "blocks": true,
+  "tags": ["household"]
+},
+
+{
+  "id": "sink",
+  "name": "Sink",
+  "icon": { "type": "image", "src": "src/icons/sink.png" },
+  "blocks": true,
+  "tags": ["household"]
+},
+
+{
+  "id": "table",
+  "name": "Table",
+  "icon": { "type": "image", "src": "src/icons/table.png" },
+  "blocks": true,
+  "tags": ["household"]
+}
+]

@@ -1,0 +1,152 @@
+// server.js
+console.log("=== RUNNING SERVER.JS FROM:", process.cwd(), "FILE:", new URL(import.meta.url).pathname, "===");
+
+import { WebSocketServer } from "ws";
+
+const wss = new WebSocketServer({ port: 8081 });
+
+const players = [
+  { id: "p1", x: 2, y: 2 },
+  { id: "p2", x: 3, y: 2 }
+];
+
+const clients = new Map(); // ws -> playerIndex
+
+// ---- World sync (authoritative on server once set) ----
+let activeWorldId = null;      // number
+let activeWorldPayload = null; // { tiles: string[][], objects: any[][], ... }
+
+function broadcast(obj) {
+  const msg = JSON.stringify(obj);
+  for (const ws of wss.clients) {
+    if (ws.readyState === 1) ws.send(msg);
+  }
+}
+
+function send(ws, obj) {
+  if (ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+// Minimal structural validation so ops don't get ignored
+function isValidWorldPayload(w) {
+  if (!w || typeof w !== "object") return false;
+  if (!Array.isArray(w.tiles) || !Array.isArray(w.objects)) return false;
+  if (w.tiles.length < 1 || w.objects.length < 1) return false;
+  if (!Array.isArray(w.tiles[0]) || !Array.isArray(w.objects[0])) return false;
+  return true;
+}
+
+wss.on("connection", (ws) => {
+  // assign first free slot
+  let idx = null;
+  const used = new Set(clients.values());
+  if (!used.has(0)) idx = 0;
+  else if (!used.has(1)) idx = 1;
+
+  if (idx === null) {
+    ws.close();
+    console.log("[WS] reject (2 clients already connected). clients:", clients.size);
+    return;
+  }
+
+  clients.set(ws, idx);
+  console.log("[WS] connect -> assigned", players[idx].id, "clients:", clients.size);
+
+  // welcome
+  send(ws, { type: "welcome", playerId: players[idx].id });
+
+  // if server already has a chosen world, push it immediately
+  if (activeWorldPayload) {
+    send(ws, { type: "world", worldId: activeWorldId, world: activeWorldPayload });
+  }
+
+  ws.on("message", (raw) => {
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return; }
+
+    // client asks for current world
+    if (msg.type === "world_request") {
+      if (activeWorldPayload) {
+        send(ws, { type: "world", worldId: activeWorldId, world: activeWorldPayload });
+      }
+      return;
+    }
+
+    // host sets the world (server becomes authoritative)
+    if (msg.type === "world_set") {
+      if (msg.world && typeof msg.worldId === "number") {
+        if (!isValidWorldPayload(msg.world)) {
+          console.warn("[WS] world_set rejected (invalid payload shape)");
+          return;
+        }
+        activeWorldId = msg.worldId;
+        activeWorldPayload = msg.world;
+        console.log("[WS] world_set accepted:", activeWorldId);
+        broadcast({ type: "world", worldId: activeWorldId, world: activeWorldPayload });
+      }
+      return;
+    }
+
+ // world operations (authoritative server applies + broadcasts)
+if (msg.type === "world_op") {
+  const op = msg.op;
+  if (!activeWorldPayload || !op || typeof op !== "object") return;
+
+  let changed = false;
+
+  if (op.kind === "set_obj") {
+    const x = op.x | 0, y = op.y | 0;
+    if (activeWorldPayload.objects?.[y] && Array.isArray(activeWorldPayload.objects[y])) {
+      activeWorldPayload.objects[y][x] = op.value ?? null;
+      changed = true;
+      broadcast({ type: "world_op", op }); // small diff
+    }
+  }
+
+  if (op.kind === "set_tile") {
+    const x = op.x | 0, y = op.y | 0;
+    if (activeWorldPayload.tiles?.[y] && Array.isArray(activeWorldPayload.tiles[y])) {
+      activeWorldPayload.tiles[y][x] = String(op.value ?? "grass");
+      changed = true;
+      broadcast({ type: "world_op", op }); // small diff
+    }
+  }
+
+  // 🔥 HARD SYNC: always correct clients immediately after a change
+  // This guarantees "tree chopped" is reflected even if a client missed/ignored the op.
+  if (changed) {
+    broadcast({ type: "world", worldId: activeWorldId, world: activeWorldPayload });
+  }
+
+  return;
+}
+
+    // existing input path
+    if (msg.type !== "input") return;
+
+    const i = clients.get(ws);
+    if (i == null) return;
+
+    const p = players[i];
+    const pl = msg.payload;
+
+    // minimal move input
+    if (pl?.type === "move") {
+      p.x += pl.dx | 0;
+      p.y += pl.dy | 0;
+      // TODO: bounds + collision later
+    }
+
+    broadcast({ type: "snapshot", state: { players } });
+  });
+
+  ws.on("close", () => {
+    clients.delete(ws);
+    console.log("[WS] close -> clients:", clients.size);
+  });
+
+  // send initial snapshot
+  broadcast({ type: "snapshot", state: { players } });
+});
+
+console.log("WS server on ws://localhost:8081");
