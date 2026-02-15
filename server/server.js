@@ -97,6 +97,21 @@ function chooseIdxForWant(want, used) {
  ws.on("message", (raw, isBinary) => {
   let msg;
 
+  // ws can hand you Buffer/ArrayBuffer/etc. Don't gamble, convert to string.
+  const text =
+    typeof raw === "string"
+      ? raw
+      : Buffer.isBuffer(raw)
+      ? raw.toString("utf8")
+      : String(raw);
+
+  try {
+    msg = JSON.parse(text);
+  } catch (e) {
+    console.warn("[WS][IN] JSON parse failed:", e.message, "rawType=", typeof raw, "isBinary=", !!isBinary, "textPreview=", text.slice(0, 120));
+    return;
+  }
+
 // --- HELLO: claim room + preferred character ---
 if (msg.type === "hello") {
   const want = (msg.want === "scott" || msg.want === "cristina") ? msg.want : null;
@@ -131,22 +146,6 @@ if (msg.type === "hello") {
 
   return;
 }
-
-  // ws can hand you Buffer/ArrayBuffer/etc. Don't gamble, convert to string.
-  const text =
-    typeof raw === "string"
-      ? raw
-      : Buffer.isBuffer(raw)
-      ? raw.toString("utf8")
-      : String(raw);
-
-  try {
-    msg = JSON.parse(text);
-  } catch (e) {
-    console.warn("[WS][IN] JSON parse failed:", e.message, "rawType=", typeof raw, "isBinary=", !!isBinary, "textPreview=", text.slice(0, 120));
-    return;
-  }
-
   // HARD INBOUND TRACE
   try {
     if (msg?.type === "input") {
