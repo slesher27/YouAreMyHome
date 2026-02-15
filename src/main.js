@@ -12179,6 +12179,11 @@ function isInWorldBounds(px, py) {
   return px >= left && px < right && py >= top && py < bottom;
 }
 
+function isInRightSidebar(px) {
+  // There is no right sidebar anymore.
+  return false;
+}
+
 function ensureActivityLogDOM() {
   // Disabled: we do NOT use a separate DOM activity log panel.
   return null;
@@ -12203,7 +12208,7 @@ function isInActivityLog(px, py) {
   // Prefer the real rect if it exists
   if (state._logUI) return hitRect(px, py, state._logUI);
 
-  // Fallback: match the overlay layout (right-anchored)
+    // Fallback: match the overlay layout (right-anchored)
   const pad = 10;
   const { viewW } = viewTiles();
   const worldLeft = UI_LEFTBAR_W + pad;
