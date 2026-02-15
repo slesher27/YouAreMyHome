@@ -18,6 +18,55 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log("WS server listening on port", PORT);
 });
 
+// --- Crash hardening (so one dumb message doesn't kill the whole server) ---
+process.on("uncaughtException", (err) => {
+  console.error("[FATAL] uncaughtException:", err);
+});
+process.on("unhandledRejection", (err) => {
+  console.error("[FATAL] unhandledRejection:", err);
+});
+
+// --- Heartbeat: keep connections alive + detect half-dead clients ---
+function markAlive() { this.isAlive = true; }
+
+wss.on("connection", (ws) => {
+  ws.isAlive = true;
+  ws.on("pong", markAlive);
+});
+
+setInterval(() => {
+  for (const ws of wss.clients) {
+    if (ws.isAlive === false) {
+      try { ws.terminate(); } catch (_) {}
+      continue;
+    }
+    ws.isAlive = false;
+    try { ws.ping(); } catch (_) {}
+  }
+}, 25000); // 25s is a nice compromise
+
+// --- Safe send helpers (ws.send CAN throw) ---
+function safeSend(ws, obj) {
+  if (!ws || ws.readyState !== 1) return;
+  try {
+    ws.send(JSON.stringify(obj));
+  } catch (e) {
+    console.warn("[WS] send failed, terminating socket:", e?.message || e);
+    try { ws.terminate(); } catch (_) {}
+  }
+}
+
+function safeBroadcast(obj) {
+  for (const ws of wss.clients) safeSend(ws, obj);
+}
+
+function safeBroadcastToRoom(room, obj) {
+  for (const ws of wss.clients) {
+    const meta = clients.get(ws);
+    if (meta?.room === room) safeSend(ws, obj);
+  }
+}
+
 const players = [
   { id: "p1", x: 2, y: 2 },
   { id: "p2", x: 3, y: 2 }
@@ -58,24 +107,31 @@ function pushLog(text, by = "server") {
   return entry;
 }
 
-function broadcastToRoom(room, obj) {
-  const msg = JSON.stringify(obj);
-  for (const ws of wss.clients) {
-    const meta = clients.get(ws);
-    if (ws.readyState === 1 && meta?.room === room) ws.send(msg);
+function safeSend(ws, obj) {
+  if (!ws || ws.readyState !== 1) return;
+  try {
+    ws.send(JSON.stringify(obj));
+  } catch (err) {
+    console.warn("[WS] send failed:", err?.message || err);
+    try { ws.terminate(); } catch (_) {}
   }
 }
 
-// Broadcast to ALL clients (ignores rooms). Useful until room-scoped world sync is finalized.
-function broadcast(obj) {
-  const msg = JSON.stringify(obj);
+function broadcastToRoom(room, obj) {
   for (const ws of wss.clients) {
-    if (ws.readyState === 1) ws.send(msg);
+    const meta = clients.get(ws);
+    if (meta?.room === room) safeSend(ws, obj);
+  }
+}
+
+function broadcast(obj) {
+  for (const ws of wss.clients) {
+    safeSend(ws, obj);
   }
 }
 
 function send(ws, obj) {
-  if (ws.readyState === 1) ws.send(JSON.stringify(obj));
+  safeSend(ws, obj);
 }
 
 // Minimal structural validation so ops don't get ignored
@@ -202,143 +258,246 @@ if (msg.type === "world_set") {
 }
 
 // world operations (authoritative server applies + broadcasts)
+// (keep these OUTSIDE the message handler so they don't redeclare every packet)
 let _worldPushTimer = null;
-
 function scheduleWorldPush() {
   if (_worldPushTimer) return;
   _worldPushTimer = setTimeout(() => {
     _worldPushTimer = null;
     if (!activeWorldPayload) return;
     broadcast({ type: "world", worldId: activeWorldId, world: activeWorldPayload });
-  }, 30); // tiny debounce so a "chop" that does 2 ops doesn't spam like crazy
+  }, 30);
 }
 
-if (msg.type === "world_op") {
-  const op = msg.op;
+ws.on("message", (raw, isBinary) => {
+  try {
+    let msg;
 
-  if (!activeWorldPayload) {
-    console.warn("[WS] world_op ignored (no activeWorldPayload yet). Did host send world_set?");
-    return;
-  }
-  if (!op || typeof op !== "object") {
-    console.warn("[WS] world_op ignored (bad op):", op);
-    return;
-  }
+    // ws can hand you Buffer/ArrayBuffer/etc. Don't gamble, convert to string.
+    const text =
+      typeof raw === "string"
+        ? raw
+        : Buffer.isBuffer(raw)
+        ? raw.toString("utf8")
+        : String(raw);
 
-  let changed = false;
-
-  if (op.kind === "set_obj") {
-    const x = op.x | 0, y = op.y | 0;
-    const row = activeWorldPayload.objects?.[y];
-    if (Array.isArray(row) && x >= 0 && x < row.length) {
-      row[x] = op.value ?? null;
-      changed = true;
+    try {
+      msg = JSON.parse(text);
+    } catch (e) {
+      console.warn(
+        "[WS][IN] JSON parse failed:",
+        e.message,
+        "rawType=",
+        typeof raw,
+        "isBinary=",
+        !!isBinary,
+        "textPreview=",
+        text.slice(0, 120)
+      );
+      return;
     }
-  } else if (op.kind === "set_tile") {
-    const x = op.x | 0, y = op.y | 0;
-    const row = activeWorldPayload.tiles?.[y];
-    if (Array.isArray(row) && x >= 0 && x < row.length) {
-      row[x] = String(op.value ?? "grass");
-      changed = true;
+
+    // --- HELLO: claim room + preferred character ---
+    if (msg.type === "hello") {
+      const want = (msg.want === "scott" || msg.want === "cristina") ? msg.want : null;
+      const room = (typeof msg.room === "string" && msg.room.trim()) ? msg.room.trim() : "scott-cristina";
+
+      // compute used slots in this room
+      const used = new Set();
+      for (const v of clients.values()) {
+        if (v && v.room === room && (v.idx === 0 || v.idx === 1)) used.add(v.idx);
+      }
+
+      const idx = chooseIdxForWant(want, used);
+      if (idx === null) {
+        // room full
+        ws.close(1008, "room full");
+        console.log("[WS] reject (room full):", room);
+        return;
+      }
+
+      clients.set(ws, { room, idx });
+      console.log("[WS] hello -> room", room, "assigned", players[idx].id);
+
+      // welcome
+      send(ws, { type: "welcome", playerId: players[idx].id });
+
+      // send current log
+      send(ws, { type: "log_init", seq: logSeq, entries: actionLog });
+
+      // if server has a world already, push it
+      if (activeWorldPayload) {
+        send(ws, { type: "world", worldId: activeWorldId, world: activeWorldPayload });
+      }
+
+      return;
     }
-  }
 
-if (changed) {
-  console.log("[WS] world_op applied:", op);
-
-  // ✅ Broadcast ONLY the op. Do NOT spam the full world (it’s massive and will disconnect clients).
-  broadcast({ type: "world_op", op });
-
-  // Optional: queue op so late clients can catch up via snapshots
-  pendingWorldOps.push(op);
-} else {
-  console.warn("[WS] world_op had no effect (out of bounds / bad rows):", op);
-}
-
-  return;
-}
-
-    // existing input path
-if (msg.type !== "input") return;
-
-const meta = clients.get(ws);
-if (!meta || meta.idx == null) return;
-
-const i = meta.idx | 0;
-const p = players[i];
-if (!p) return;
-
-const pl = msg.payload;
-
-
-// ✅ Activity log input
-if (pl?.type === "log") {
-const entry = pushLog(pl.text, players[i].id);
-console.log("[WS][LOG] RECEIVED from", players[i].id, "=>", entry);
-
-  // immediate broadcast
-  broadcast({ type: "log_entry", entry });
-  console.log("[WS][LOG] BROADCAST log_entry seq", entry.seq, "to", wss.clients.size, "clients");
-
-
-  // piggyback reliability: include in next snapshot too
-  const ops = pendingWorldOps.length ? pendingWorldOps.splice(0, pendingWorldOps.length) : [];
-// Full-history logs so every snapshot heals missing log_init/log_entry.
-const logs = logsForSnapshot();
-pendingLogEntries.length = 0;
-broadcast({ type: "snapshot", state: { players }, ops, logs });
- console.log("[WS][LOG] BROADCAST snapshot logs=", logs.length, "ops=", ops.length);
-
-  return;
-}
-
-// ✅ Allow world ops to come through the proven "input" channel
-if (pl?.type === "world_op") {
-  const op = pl.op;
-console.log("[WS] got input world_op:", op, "hasWorld?", !!activeWorldPayload);
-
-  if (!activeWorldPayload) {
-    console.warn("[WS] input world_op ignored (no activeWorldPayload).");
-    return;
-  }
-  if (!op || typeof op !== "object") {
-    console.warn("[WS] input world_op ignored (bad op):", op);
-    return;
-  }
-
-  let changed = false;
-
-  if (op.kind === "set_obj") {
-    const x = op.x | 0, y = op.y | 0;
-    const row = activeWorldPayload.objects?.[y];
-    if (Array.isArray(row) && x >= 0 && x < row.length) {
-      row[x] = op.value ?? null;
-      changed = true;
+    // HARD INBOUND TRACE
+    try {
+      if (msg?.type === "input") {
+        console.log("[WS][IN] input payload:", msg.payload?.type, msg.payload);
+      } else {
+        console.log("[WS][IN]", msg?.type, msg);
+      }
+    } catch (e2) {
+      console.warn("[WS][IN] trace failed:", e2);
     }
-  } else if (op.kind === "set_tile") {
-    const x = op.x | 0, y = op.y | 0;
-    const row = activeWorldPayload.tiles?.[y];
-    if (Array.isArray(row) && x >= 0 && x < row.length) {
-      row[x] = String(op.value ?? "grass");
-      changed = true;
+
+    // client asks for current world
+    if (msg.type === "world_request") {
+      if (activeWorldPayload) {
+        send(ws, { type: "world", worldId: activeWorldId, world: activeWorldPayload });
+      }
+      return;
     }
-  }
 
-if (changed) {
-  console.log("[WS] input world_op applied:", op);
+    // ----------------------------------------------------------------------------
+    // WORLD: first writer wins (prevents host-order nonsense)
+    // ----------------------------------------------------------------------------
+    if (msg.type === "world_set") {
+      if (msg.world && typeof msg.worldId === "number") {
+        if (!isValidWorldPayload(msg.world)) {
+          console.warn("[WS] world_set rejected (invalid payload shape)");
+          return;
+        }
 
-  // ✅ Immediate broadcast so P2 updates instantly (no dependence on snapshot timing)
-  broadcast({ type: "world_op", op });
+        // If a world already exists, ignore further world_set to avoid tug-of-war.
+        if (activeWorldPayload) {
+          console.warn("[WS] world_set ignored (world already set):", activeWorldId);
 
-  // ✅ Still queue it so anyone who missed it can catch it via snapshot
-  pendingWorldOps.push(op);
-  console.log("[WS] queued ops =", pendingWorldOps.length);
-} else {
-  console.warn("[WS] input world_op had no effect:", op);
-}
+          // Heal the host immediately: send the server's world so they don't stay in a different local world.
+          send(ws, { type: "world", worldId: activeWorldId, world: activeWorldPayload });
+          return;
+        }
 
-  return;
-}
+        activeWorldId = msg.worldId;
+        activeWorldPayload = msg.world;
+        console.log("[WS] world_set accepted:", activeWorldId);
+        broadcast({ type: "world", worldId: activeWorldId, world: activeWorldPayload });
+      }
+      return;
+    }
+
+    if (msg.type === "world_op") {
+      const op = msg.op;
+
+      if (!activeWorldPayload) {
+        console.warn("[WS] world_op ignored (no activeWorldPayload yet). Did host send world_set?");
+        return;
+      }
+      if (!op || typeof op !== "object") {
+        console.warn("[WS] world_op ignored (bad op):", op);
+        return;
+      }
+
+      let changed = false;
+
+      if (op.kind === "set_obj") {
+        const x = op.x | 0, y = op.y | 0;
+        const row = activeWorldPayload.objects?.[y];
+        if (Array.isArray(row) && x >= 0 && x < row.length) {
+          row[x] = op.value ?? null;
+          changed = true;
+        }
+      } else if (op.kind === "set_tile") {
+        const x = op.x | 0, y = op.y | 0;
+        const row = activeWorldPayload.tiles?.[y];
+        if (Array.isArray(row) && x >= 0 && x < row.length) {
+          row[x] = String(op.value ?? "grass");
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        console.log("[WS] world_op applied:", op);
+
+        // Broadcast ONLY the op (full world spam causes disconnects)
+        broadcast({ type: "world_op", op });
+
+        // Optional queue for snapshots
+        pendingWorldOps.push(op);
+
+        // If you ever re-enable full-world pushes, keep it debounced:
+        // scheduleWorldPush();
+      } else {
+        console.warn("[WS] world_op had no effect (out of bounds / bad rows):", op);
+      }
+
+      return;
+    }
+
+    // ----------------------------------------------------------------------------
+    // INPUT (movement + log + world_op via input)
+    // ----------------------------------------------------------------------------
+    if (msg.type !== "input") return;
+
+    const meta = clients.get(ws);
+    if (!meta || meta.idx == null) return;
+
+    const i = meta.idx | 0;
+    const p = players[i];
+    if (!p) return;
+
+    const pl = msg.payload;
+
+    // Activity log input
+    if (pl?.type === "log") {
+      const entry = pushLog(pl.text, players[i].id);
+      console.log("[WS][LOG] RECEIVED from", players[i].id, "=>", entry);
+
+      broadcast({ type: "log_entry", entry });
+
+      const ops = pendingWorldOps.length ? pendingWorldOps.splice(0, pendingWorldOps.length) : [];
+      const logs = logsForSnapshot();
+      pendingLogEntries.length = 0;
+      broadcast({ type: "snapshot", state: { players }, ops, logs });
+
+      return;
+    }
+
+    // Allow world ops to come through the input channel
+    if (pl?.type === "world_op") {
+      const op = pl.op;
+      console.log("[WS] got input world_op:", op, "hasWorld?", !!activeWorldPayload);
+
+      if (!activeWorldPayload) {
+        console.warn("[WS] input world_op ignored (no activeWorldPayload).");
+        return;
+      }
+      if (!op || typeof op !== "object") {
+        console.warn("[WS] input world_op ignored (bad op):", op);
+        return;
+      }
+
+      let changed = false;
+
+      if (op.kind === "set_obj") {
+        const x = op.x | 0, y = op.y | 0;
+        const row = activeWorldPayload.objects?.[y];
+        if (Array.isArray(row) && x >= 0 && x < row.length) {
+          row[x] = op.value ?? null;
+          changed = true;
+        }
+      } else if (op.kind === "set_tile") {
+        const x = op.x | 0, y = op.y | 0;
+        const row = activeWorldPayload.tiles?.[y];
+        if (Array.isArray(row) && x >= 0 && x < row.length) {
+          row[x] = String(op.value ?? "grass");
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        console.log("[WS] input world_op applied:", op);
+        broadcast({ type: "world_op", op });
+        pendingWorldOps.push(op);
+      } else {
+        console.warn("[WS] input world_op had no effect:", op);
+      }
+
+      return;
+    }
 
     // minimal move input
     if (pl?.type === "move") {
@@ -347,20 +506,46 @@ if (changed) {
       // TODO: bounds + collision later
     }
 
-   const ops = pendingWorldOps.length ? pendingWorldOps.splice(0, pendingWorldOps.length) : [];
-const logs = logsForSnapshot();
-pendingLogEntries.length = 0;
-broadcast({ type: "snapshot", state: { players }, ops, logs });
+    const ops = pendingWorldOps.length ? pendingWorldOps.splice(0, pendingWorldOps.length) : [];
+    const logs = logsForSnapshot();
+    pendingLogEntries.length = 0;
+    broadcast({ type: "snapshot", state: { players }, ops, logs });
 
-} catch (err) {
-  console.error("[WS] message handler crashed:", err);
-}
+  } catch (err) {
+    console.error("[WS] message handler crashed:", err);
+  }
+});
+
+ws.onclose = (ev) => {
+  console.log("[NET] disconnected", {
+    code: ev?.code,
+    reason: ev?.reason,
+    wasClean: ev?.wasClean
   });
 
-  ws.on("close", () => {
-    clients.delete(ws);
-    console.log("[WS] close -> clients:", clients.size);
-  });
+  state.net.enabled = false;
+  state.net.ws = null;
+  state.net.playerId = null;
+  state.net.isHost = false;
+
+  // Auto-reconnect on abnormal closes (1006, etc.)
+  const code = ev?.code ?? 0;
+  const shouldReconnect = (code !== 1000); // 1000 = normal close
+
+  if (shouldReconnect) {
+    state.net._retries = (state.net._retries ?? 0) + 1;
+    const n = Math.min(state.net._retries, 6);
+    const delay = 500 * Math.pow(2, n); // 1s,2s,4s,8s,16s,32s-ish
+
+    console.log("[NET] reconnecting in", delay, "ms (attempt", state.net._retries, ")");
+    setTimeout(() => {
+      // only reconnect if we still want net on
+      connectOnline(url);
+    }, delay);
+  } else {
+    state.net._retries = 0;
+  }
+};
 
 // send initial snapshot
 const ops = pendingWorldOps.length ? pendingWorldOps.splice(0, pendingWorldOps.length) : [];
