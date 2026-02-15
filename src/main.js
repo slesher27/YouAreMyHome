@@ -10435,7 +10435,7 @@ function drawActivityLogOverlay() {
   }
 
   // Activity log size
-const logW = Math.min(worldW, 520);
+const logW = Math.min(worldW, 320);
 const lx = worldLeft + worldW - logW; // RIGHT-ANCHOR
 const ly = worldTop;
 
@@ -10471,7 +10471,8 @@ const ly = worldTop;
   const visible = Math.max(1, Math.floor(usableH / lineH));
 
   const all = state.actionLog;
-  const start = Math.max(0, all.length - visible);
+  // actionLog is NEWEST-FIRST (index 0 is most recent)
+  const start = state.logExpanded ? (state.logScroll | 0) : 0;
   const logs = all.slice(start, start + visible);
 
   let yy = ly + pad + 2;
