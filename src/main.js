@@ -760,9 +760,6 @@ function connectOnline(url) {
   ws.onopen = () => {
     console.log("[NET] connected:", url);
 
-    // harmless hello (server can ignore)
-    try { ws.send(JSON.stringify({ type: "hello" })); } catch (_) {}
-
     // Flush any log lines created before ws was ready
     if (typeof flushBufferedLogs === "function") flushBufferedLogs();
   };
