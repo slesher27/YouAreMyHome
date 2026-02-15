@@ -1,9 +1,22 @@
 // server.js
 console.log("=== RUNNING SERVER.JS FROM:", process.cwd(), "FILE:", new URL(import.meta.url).pathname, "===");
 
+import http from "http";
 import { WebSocketServer } from "ws";
 
-const wss = new WebSocketServer({ port: 8081 });
+const PORT = process.env.PORT || 8081;
+
+// Render wants you listening on its port, and on 0.0.0.0
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "content-type": "text/plain" });
+  res.end("ok");
+});
+
+const wss = new WebSocketServer({ server });
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log("WS server listening on port", PORT);
+});
 
 const players = [
   { id: "p1", x: 2, y: 2 },
