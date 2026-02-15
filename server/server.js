@@ -66,6 +66,14 @@ function broadcastToRoom(room, obj) {
   }
 }
 
+// Broadcast to ALL clients (ignores rooms). Useful until room-scoped world sync is finalized.
+function broadcast(obj) {
+  const msg = JSON.stringify(obj);
+  for (const ws of wss.clients) {
+    if (ws.readyState === 1) ws.send(msg);
+  }
+}
+
 function send(ws, obj) {
   if (ws.readyState === 1) ws.send(JSON.stringify(obj));
 }
